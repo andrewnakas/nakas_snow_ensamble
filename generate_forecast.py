@@ -4,6 +4,7 @@ Main script to generate snow ensemble forecasts.
 Fetches data, calculates snow, and creates visualizations.
 
 This script is designed to run automatically via GitHub Actions.
+It downloads live GEFS and ECMWF IFS-ENS data from Dynamical.org.
 """
 
 import os
