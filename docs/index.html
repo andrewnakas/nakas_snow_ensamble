@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Ensemble Forecast</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        .info-item {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .description {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-title {
+            padding: 15px;
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #1e3c72;
+            text-align: center;
+        }
+
+        .city-plots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+        }
+
+        footer {
+            background: #1e3c72;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .footer-links {
+            margin-top: 15px;
+        }
+
+        .footer-links a {
+            color: #87ceeb;
+            text-decoration: none;
+            margin: 0 15px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .warning-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .warning-box p {
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .image-grid, .city-plots {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            main {
+                padding: 20px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .update-time {
+            font-style: italic;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>❄️ Snow Ensemble Forecast</h1>
+            <p class="subtitle">82-Member Ensemble Snow Forecasting System</p>
+            <div class="info-box">
+                <div class="info-item">
+                    <span class="info-label">Models:</span>
+                    <span>GEFS (31) + ECMWF IFS-ENS (51)</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Resolution:</span>
+                    <span>0.25° (~20km)</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Forecast Period:</span>
+                    <span>10 Days</span>
+                </div>
+            </div>
+            <p class="update-time" id="updateTime">Loading...</p>
+        </header>
+
+        <main>
+            <!-- About Section -->
+            <section class="section">
+                <h2 class="section-title">About This Forecast</h2>
+                <div class="description">
+                    <p>This automated snow ensemble forecasting system combines ensemble members from the NOAA GEFS
+                    (Global Ensemble Forecast System) and ECMWF IFS-ENS (Integrated Forecasting System - Ensemble)
+                    to provide probabilistic snowfall forecasts for the western United States.</p>
+                    <br>
+                    <p><strong>How it works:</strong> The system downloads high-resolution forecast data, calculates
+                    snow-to-liquid ratios based on temperature profiles, and generates multiple visualization products
+                    showing the range of possible outcomes. This approach is inspired by the
+                    <a href="https://wasatchweatherweenies.blogspot.com/2024/09/the-utah-snow-ensemble.html"
+                    target="_blank" style="color: #667eea;">Utah Snow Ensemble</a>.</p>
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Forecast Limitations</h3>
+                    <p>This system uses a simplified snow-to-liquid ratio calculation based on temperature.
+                    It may struggle with "warm nose" situations and cannot reliably identify freezing rain or
+                    ice pellets. Always consult official National Weather Service forecasts for critical decisions.</p>
+                </div>
+            </section>
+
+            <!-- Regional Overview Maps -->
+            <section class="section">
+                <h2 class="section-title">Regional Overview Maps</h2>
+                <div class="description">
+                    <p>Four-panel maps showing: <strong>Control Member</strong> (first ensemble member),
+                    <strong>Ensemble Mean</strong> (average of all members), <strong>Ensemble Minimum</strong>,
+                    and <strong>Ensemble Maximum</strong>. These maps help visualize both the consensus forecast
+                    and the range of possible outcomes.</p>
+                </div>
+
+                <div class="image-grid">
+                    <div class="image-card">
+                        <div class="image-title">10-Day Total Snowfall</div>
+                        <img src="snow_10day_total.png" alt="10-Day Total Snowfall"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                    </div>
+                    <div class="image-card">
+                        <div class="image-title">Maximum 24-Hour Snowfall</div>
+                        <img src="snow_24h_max.png" alt="Maximum 24-Hour Snowfall"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ensemble Spread -->
+            <section class="section">
+                <h2 class="section-title">Forecast Uncertainty</h2>
+                <div class="description">
+                    <p>The ensemble spread (standard deviation) map shows where the forecast is most uncertain.
+                    Larger spread indicates greater disagreement among ensemble members about potential snowfall amounts.</p>
+                </div>
+
+                <div class="image-grid">
+                    <div class="image-card">
+                        <div class="image-title">10-Day Snowfall Ensemble Spread</div>
+                        <img src="snow_ensemble_spread.png" alt="Ensemble Spread"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Location-Specific Plume Plots -->
+            <section class="section">
+                <h2 class="section-title">Location-Specific Forecasts</h2>
+                <div class="description">
+                    <p><strong>Violin plots</strong> show the distribution of forecast outcomes at specific locations.
+                    The width of each violin indicates probability - wider sections show snowfall amounts that more
+                    ensemble members are predicting. <strong>Plume plots</strong> display individual ensemble member
+                    traces along with the ensemble mean and probability range.</p>
+                </div>
+
+                <div class="city-plots">
+                    <div class="image-card">
+                        <div class="image-title">Salt Lake City, UT</div>
+                        <img src="snow_plume_salt_lake_city_ut.png" alt="Salt Lake City Forecast"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                    </div>
+                    <div class="image-card">
+                        <div class="image-title">Park City, UT</div>
+                        <img src="snow_plume_park_city_ut.png" alt="Park City Forecast"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                    </div>
+                    <div class="image-card">
+                        <div class="image-title">Alta, UT</div>
+                        <img src="snow_plume_alta_ut.png" alt="Alta Forecast"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                    </div>
+                    <div class="image-card">
+                        <div class="image-title">Brighton, UT</div>
+                        <img src="snow_plume_brighton_ut.png" alt="Brighton Forecast"
+                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Sources -->
+            <section class="section">
+                <h2 class="section-title">Data Sources & Methodology</h2>
+                <div class="description">
+                    <ul style="margin-left: 20px;">
+                        <li><strong>NOAA GEFS:</strong> 31-member ensemble forecast from <a href="https://dynamical.org/catalog/noaa-gefs-forecast-35-day/" target="_blank" style="color: #667eea;">Dynamical.org</a></li>
+                        <li><strong>ECMWF IFS-ENS:</strong> 51-member ensemble forecast from <a href="https://dynamical.org/catalog/models/ifs-ens/" target="_blank" style="color: #667eea;">Dynamical.org</a></li>
+                        <li><strong>Snow Calculation:</strong> Temperature-based snow-to-liquid ratio (simplified method)</li>
+                        <li><strong>Update Frequency:</strong> Daily at 12:00 UTC via GitHub Actions</li>
+                        <li><strong>Code:</strong> Open source on <a href="https://github.com/andrewnakas/nakas_snow_ensamble" target="_blank" style="color: #667eea;">GitHub</a></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p><strong>Automated Snow Ensemble Forecasting System</strong></p>
+            <p>Powered by GitHub Actions • Data from Dynamical.org</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                Inspired by the <a href="https://wasatchweatherweenies.blogspot.com/2024/09/the-utah-snow-ensemble.html"
+                target="_blank" style="color: #87ceeb;">Utah Snow Ensemble</a>
+            </p>
+            <div class="footer-links">
+                <a href="https://github.com/andrewnakas/nakas_snow_ensamble" target="_blank">GitHub Repository</a>
+                <a href="https://dynamical.org" target="_blank">Dynamical.org</a>
+                <a href="https://www.weather.gov" target="_blank">NWS Forecasts</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Load and display metadata
+        fetch('metadata.json')
+            .then(response => response.json())
+            .then(data => {
+                const updateTime = new Date(data.generation_time);
+                document.getElementById('updateTime').textContent =
+                    `Last Updated: ${updateTime.toUTCString()} • Init Time: ${data.init_time}`;
+            })
+            .catch(error => {
+                document.getElementById('updateTime').textContent =
+                    'Forecast will be generated on first automated run';
+            });
+    </script>
+</body>
+</html>

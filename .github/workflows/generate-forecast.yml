@@ -1,0 +1,87 @@
+name: Generate Snow Ensemble Forecast
+
+on:
+  schedule:
+    # Run daily at 12:00 UTC (after model runs are typically available)
+    - cron: '0 12 * * *'
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      region:
+        description: 'Region to generate forecast for'
+        required: false
+        default: 'intermountain_west'
+        type: choice
+        options:
+          - western_us
+          - intermountain_west
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-forecast:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate forecast
+        env:
+          REGION: ${{ github.event.inputs.region || 'intermountain_west' }}
+        run: |
+          python generate_forecast.py \
+            --region $REGION \
+            --max-hours 240 \
+            --output-dir docs \
+            --email [email protected]
+
+      - name: Commit and push forecast updates
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/
+          git diff --staged --quiet || git commit -m "Update snow forecast $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push -u origin claude/snow-ensemble-github-actions-015sZZdvXEYTnKE7oVxsv1o1 || echo "No changes to push"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: forecast-maps
+          path: docs/*.png
+          retention-days: 30
+
+  deploy-pages:
+    needs: generate-forecast
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: claude/snow-ensemble-github-actions-015sZZdvXEYTnKE7oVxsv1o1
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

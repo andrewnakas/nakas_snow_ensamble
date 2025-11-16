@@ -1,0 +1,10 @@
+{
+  "generation_time": "2024-11-16T00:00:00",
+  "init_time": "Pending first run",
+  "region": "Intermountain West",
+  "max_hours": 240,
+  "num_members": 82,
+  "gefs_members": 31,
+  "ecmwf_members": 51,
+  "note": "This is a placeholder. Real metadata will be generated after first forecast run."
+}
