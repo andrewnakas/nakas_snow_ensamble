@@ -31,6 +31,30 @@
             padding: 15px 30px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .nav-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .nav-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
         }
 
         h1 {
@@ -268,8 +292,11 @@
 </head>
 <body>
     <header>
-        <h1>❄️ Interactive Snow Forecast Map</h1>
-        <p class="subtitle">Click anywhere on the map to see ensemble snow forecasts • 82 members (GEFS + ECMWF)</p>
+        <div class="header-left">
+            <h1>❄️ Interactive Snow Forecast Map</h1>
+            <p class="subtitle">Click popular ski resorts below to see real ensemble forecasts • 82 members (GEFS + ECMWF)</p>
+        </div>
+        <a href="index.html" class="nav-button">← Back to Home</a>
     </header>
 
     <div class="container">
@@ -279,35 +306,27 @@
             <div class="sidebar-content">
                 <div class="info-box">
                     <h3>🗺️ How to Use</h3>
-                    <p><strong>Click any location</strong> on the map to view the snow ensemble forecast for that point.</p>
-                    <p style="margin-top: 10px;"><strong>Or</strong> select from popular ski resort locations below.</p>
+                    <p><strong>Select a ski resort</strong> from the list below to view real ensemble forecasts.</p>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Forecasts are generated daily from live GEFS and ECMWF data.</p>
                 </div>
 
                 <div class="cities-list">
                     <h3 style="margin-bottom: 10px; color: #1e3c72;">⛷️ Popular Ski Resorts</h3>
-                    <div class="city-item" onclick="selectCity(40.59, -111.64, 'Alta Ski Area, UT')">
+                    <div class="city-item" onclick="loadCityForecast('alta_ut')">
                         <div class="city-name">Alta Ski Area, UT</div>
                         <div class="city-coords">40.59°N, 111.64°W • 8,530 ft</div>
                     </div>
-                    <div class="city-item" onclick="selectCity(40.65, -111.50, 'Park City, UT')">
+                    <div class="city-item" onclick="loadCityForecast('park_city_ut')">
                         <div class="city-name">Park City Mountain, UT</div>
                         <div class="city-coords">40.65°N, 111.50°W • 8,400 ft</div>
                     </div>
-                    <div class="city-item" onclick="selectCity(40.60, -111.58, 'Brighton Resort, UT')">
+                    <div class="city-item" onclick="loadCityForecast('brighton_ut')">
                         <div class="city-name">Brighton Resort, UT</div>
                         <div class="city-coords">40.60°N, 111.58°W • 8,755 ft</div>
                     </div>
-                    <div class="city-item" onclick="selectCity(40.76, -111.89, 'Salt Lake City, UT')">
+                    <div class="city-item" onclick="loadCityForecast('salt_lake_city_ut')">
                         <div class="city-name">Salt Lake City, UT</div>
                         <div class="city-coords">40.76°N, 111.89°W • 4,226 ft</div>
-                    </div>
-                    <div class="city-item" onclick="selectCity(39.64, -106.05, 'Vail, CO')">
-                        <div class="city-name">Vail, CO</div>
-                        <div class="city-coords">39.64°N, 106.05°W • 8,150 ft</div>
-                    </div>
-                    <div class="city-item" onclick="selectCity(47.61, -122.33, 'Seattle, WA')">
-                        <div class="city-name">Seattle, WA</div>
-                        <div class="city-coords">47.61°N, 122.33°W • 175 ft</div>
                     </div>
                 </div>
 
@@ -345,10 +364,10 @@
                 </div>
 
                 <div class="instructions">
-                    <h4>📝 Note</h4>
-                    <p>This is an <strong>interactive demo</strong>. To generate custom forecasts, you can run the point forecast script locally:</p>
+                    <h4>📝 Custom Locations</h4>
+                    <p>To generate forecasts for custom locations, run the point forecast script locally:</p>
                     <pre style="background: #f8f9fa; padding: 10px; margin-top: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85em;">python generate_point_forecast.py --lat 40.76 --lon -111.89</pre>
-                    <p style="margin-top: 10px; font-size: 0.85em;">Data shown is simulated for demonstration. Real forecasts use live GEFS and ECMWF ensemble data from Dynamical.org.</p>
+                    <p style="margin-top: 10px; font-size: 0.85em;">This fetches live GEFS and ECMWF ensemble data from Dynamical.org for any coordinates.</p>
                 </div>
             </div>
         </div>
@@ -377,87 +396,100 @@
         let currentMarker = null;
         let forecastChart = null;
 
-        // Click handler
-        map.on('click', function(e) {
-            const lat = e.latlng.lat;
-            const lon = e.latlng.lng;
-            selectCity(lat, lon, `Custom Location`);
-        });
+        // City coordinates and metadata
+        const cityData = {
+            'alta_ut': { name: 'Alta Ski Area, UT', lat: 40.59, lon: -111.64 },
+            'park_city_ut': { name: 'Park City Mountain, UT', lat: 40.65, lon: -111.50 },
+            'brighton_ut': { name: 'Brighton Resort, UT', lat: 40.60, lon: -111.58 },
+            'salt_lake_city_ut': { name: 'Salt Lake City, UT', lat: 40.76, lon: -111.89 }
+        };
 
-        function selectCity(lat, lon, name) {
+        function loadCityForecast(cityId) {
+            const city = cityData[cityId];
+            if (!city) return;
+
             // Add/update marker
             if (currentMarker) {
                 map.removeLayer(currentMarker);
             }
-            currentMarker = L.marker([lat, lon]).addTo(map);
-            currentMarker.bindPopup(`<b>${name}</b><br>${lat.toFixed(2)}°N, ${Math.abs(lon).toFixed(2)}°W`).openPopup();
+            currentMarker = L.marker([city.lat, city.lon]).addTo(map);
+            currentMarker.bindPopup(`<b>${city.name}</b><br>${city.lat.toFixed(2)}°N, ${Math.abs(city.lon).toFixed(2)}°W`).openPopup();
 
             // Center map
-            map.setView([lat, lon], 9);
+            map.setView([city.lat, city.lon], 9);
 
-            // Generate simulated forecast (in real app, this would fetch from API)
-            generateSimulatedForecast(lat, lon, name);
+            // Load real forecast data
+            loadForecastData(cityId, city);
         }
 
-        function generateSimulatedForecast(lat, lon, name) {
+        function loadForecastData(cityId, city) {
+            // Try to load the JSON file generated by the workflow
+            fetch(`forecasts/${cityId}.json`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Forecast not yet generated');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displayForecast(data, city);
+                })
+                .catch(error => {
+                    console.log('Forecast file not found, showing placeholder:', error);
+                    showPlaceholder(city);
+                });
+        }
+
+        function showPlaceholder(city) {
             document.getElementById('forecastDisplay').style.display = 'block';
-            document.getElementById('locName').textContent = name;
-            document.getElementById('locCoords').textContent = `${lat.toFixed(2)}°N, ${Math.abs(lon).toFixed(2)}°W`;
+            document.getElementById('locName').textContent = city.name;
+            document.getElementById('locCoords').textContent = `${city.lat.toFixed(2)}°N, ${Math.abs(city.lon).toFixed(2)}°W`;
 
-            // Simulate ensemble forecast data
-            const hours = 240;
-            const timesteps = 81; // Every 3 hours
-            const leadTimes = Array.from({length: timesteps}, (_, i) => i * 3);
+            document.getElementById('statMean').textContent = '-';
+            document.getElementById('statMedian').textContent = '-';
+            document.getElementById('statP10').textContent = '-';
+            document.getElementById('statP90').textContent = '-';
 
-            // Generate realistic ensemble members
-            const numMembers = 82;
-            const ensembleData = [];
-
-            // Base accumulation rate (varies by latitude and elevation)
-            const baseRate = Math.random() * 2 + 0.5; // 0.5-2.5 mm/3hr
-
-            for (let m = 0; m < numMembers; m++) {
-                let cumulative = 0;
-                const memberData = [];
-                const memberVariation = (Math.random() - 0.5) * 1.5; // Member-specific variation
-
-                for (let t = 0; t < timesteps; t++) {
-                    // Add some temporal and stochastic variation
-                    const timeVariation = Math.sin(t / 10) * 0.3;
-                    const randomVariation = (Math.random() - 0.5) * 0.5;
-                    const increment = Math.max(0, (baseRate + memberVariation + timeVariation + randomVariation));
-                    cumulative += increment;
-                    memberData.push(cumulative);
-                }
-                ensembleData.push(memberData);
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            if (forecastChart) {
+                forecastChart.destroy();
             }
 
-            // Calculate statistics
-            const mean = leadTimes.map((_, i) => {
-                const values = ensembleData.map(m => m[i]);
-                return values.reduce((a, b) => a + b) / values.length;
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Forecast data will appear here after workflow runs',
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    }
+                }
             });
+        }
 
-            const median = leadTimes.map((_, i) => {
-                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
-                return values[Math.floor(values.length / 2)];
-            });
+        function displayForecast(data, city) {
+            document.getElementById('forecastDisplay').style.display = 'block';
+            document.getElementById('locName').textContent = city.name;
+            document.getElementById('locCoords').textContent = `${city.lat.toFixed(2)}°N, ${Math.abs(city.lon).toFixed(2)}°W`;
 
-            const p10 = leadTimes.map((_, i) => {
-                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
-                return values[Math.floor(values.length * 0.1)];
-            });
-
-            const p90 = leadTimes.map((_, i) => {
-                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
-                return values[Math.floor(values.length * 0.9)];
-            });
+            // Extract statistics from the JSON data
+            const stats = data.forecast.statistics;
+            const leadTimes = data.forecast.lead_times;
+            const days = leadTimes.map(h => h / 24);
 
             // Update stats
-            document.getElementById('statMean').textContent = mean[mean.length - 1].toFixed(1);
-            document.getElementById('statMedian').textContent = median[median.length - 1].toFixed(1);
-            document.getElementById('statP10').textContent = p10[p10.length - 1].toFixed(1);
-            document.getElementById('statP90').textContent = p90[p90.length - 1].toFixed(1);
+            document.getElementById('statMean').textContent = stats.total_mean.toFixed(1);
+            document.getElementById('statMedian').textContent = stats.total_median.toFixed(1);
+            document.getElementById('statP10').textContent = stats.total_p10.toFixed(1);
+            document.getElementById('statP90').textContent = stats.total_p90.toFixed(1);
 
             // Create chart
             const ctx = document.getElementById('forecastChart').getContext('2d');
@@ -466,8 +498,6 @@
                 forecastChart.destroy();
             }
 
-            const days = leadTimes.map(h => h / 24);
-
             forecastChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -475,7 +505,7 @@
                     datasets: [
                         {
                             label: 'Mean',
-                            data: mean,
+                            data: stats.mean,
                             borderColor: 'rgb(255, 99, 132)',
                             backgroundColor: 'transparent',
                             borderWidth: 3,
@@ -483,7 +513,7 @@
                         },
                         {
                             label: 'Median',
-                            data: median,
+                            data: stats.median,
                             borderColor: 'rgb(54, 162, 235)',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -492,7 +522,7 @@
                         },
                         {
                             label: '10th-90th Percentile',
-                            data: p90,
+                            data: stats.p90,
                             borderColor: 'rgba(75, 192, 192, 0.3)',
                             backgroundColor: 'rgba(75, 192, 192, 0.1)',
                             fill: '+1',
@@ -501,7 +531,7 @@
                         },
                         {
                             label: '',
-                            data: p10,
+                            data: stats.p10,
                             borderColor: 'rgba(75, 192, 192, 0.3)',
                             backgroundColor: 'rgba(75, 192, 192, 0.1)',
                             borderWidth: 1,
@@ -550,7 +580,7 @@
         }
 
         // Initialize with a default location
-        selectCity(40.59, -111.64, 'Alta Ski Area, UT');
+        loadCityForecast('alta_ut');
     </script>
 </body>
 </html>

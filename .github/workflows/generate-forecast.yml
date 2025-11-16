@@ -60,6 +60,30 @@ jobs:
             --email [email protected] 2>&1 | tee forecast.log
           echo "Forecast generation completed"
 
+      - name: Generate point forecasts for interactive map
+        continue-on-error: true
+        run: |
+          echo "Generating point forecasts for popular ski resorts..."
+          mkdir -p docs/forecasts
+
+          # Alta Ski Area
+          python generate_point_forecast.py --lat 40.59 --lon -111.64 \
+            --output docs/forecasts/alta_ut.json || echo "Alta forecast failed"
+
+          # Park City
+          python generate_point_forecast.py --lat 40.65 --lon -111.50 \
+            --output docs/forecasts/park_city_ut.json || echo "Park City forecast failed"
+
+          # Brighton
+          python generate_point_forecast.py --lat 40.60 --lon -111.58 \
+            --output docs/forecasts/brighton_ut.json || echo "Brighton forecast failed"
+
+          # Salt Lake City
+          python generate_point_forecast.py --lat 40.76 --lon -111.89 \
+            --output docs/forecasts/salt_lake_city_ut.json || echo "SLC forecast failed"
+
+          echo "Point forecasts generation completed"
+
       - name: Commit and push forecast updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
