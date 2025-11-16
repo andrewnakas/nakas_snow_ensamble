@@ -2,6 +2,8 @@
 """
 Main script to generate snow ensemble forecasts.
 Fetches data, calculates snow, and creates visualizations.
+
+This script is designed to run automatically via GitHub Actions.
 """
 
 import os
@@ -10,6 +12,10 @@ import argparse
 from datetime import datetime
 import xarray as xr
 import numpy as np
+import warnings
+
+# Suppress warnings for cleaner output
+warnings.filterwarnings('ignore')
 
 from src.data_fetcher import EnsembleDataFetcher
 from src.snow_calculator import SnowCalculator
@@ -64,9 +70,14 @@ def main():
     # Get region configuration
     region_config = REGIONS[args.region]
     print(f"\n{'='*60}")
-    print(f"Snow Ensemble Forecast Generator")
+    print(f"❄️  Snow Ensemble Forecast Generator")
+    print(f"{'='*60}")
     print(f"Region: {region_config['name']}")
     print(f"Maximum forecast hours: {args.max_hours}")
+    print(f"Cities: {len(region_config['cities'])}")
+    print(f"Lat range: {region_config['lat_bounds']}")
+    print(f"Lon range: {region_config['lon_bounds']}")
+    print(f"Output: {args.output_dir}")
     print(f"{'='*60}\n")
 
     # Step 1: Fetch ensemble data
@@ -204,9 +215,18 @@ def main():
         json.dump(metadata, f, indent=2)
 
     print(f"\n{'='*60}")
-    print("Forecast generation complete!")
+    print("✅ Forecast generation complete!")
+    print(f"{'='*60}")
     print(f"Output directory: {args.output_dir}")
+    print(f"Generated files:")
+    for filename in os.listdir(args.output_dir):
+        if filename.endswith('.png') or filename.endswith('.json'):
+            filepath = os.path.join(args.output_dir, filename)
+            filesize = os.path.getsize(filepath) / 1024  # KB
+            print(f"  - {filename} ({filesize:.1f} KB)")
     print(f"{'='*60}\n")
+    print("🌐 Forecast will be deployed to GitHub Pages automatically")
+    print("📊 Check the Actions tab for deployment status\n")
 
 
 if __name__ == '__main__':
