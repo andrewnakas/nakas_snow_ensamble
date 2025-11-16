@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Snow Forecast Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Chart.js for plotting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 400px;
+            background: white;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #2a5298;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+
+        .location-info {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .location-info h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .location-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px;
+            font-size: 0.95em;
+        }
+
+        .location-details strong {
+            color: #666;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .cities-list {
+            margin-top: 15px;
+        }
+
+        .city-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .city-item:hover {
+            background: #e3f2fd;
+            border-color: #2a5298;
+            transform: translateX(5px);
+        }
+
+        .city-name {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .city-coords {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .instructions h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #856404;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #1e3c72;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2a5298;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .stat-unit {
+            font-size: 0.7em;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: 50vh;
+            }
+        }
+
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 3px 0;
+            font-size: 0.85em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>❄️ Interactive Snow Forecast Map</h1>
+        <p class="subtitle">Click anywhere on the map to see ensemble snow forecasts • 82 members (GEFS + ECMWF)</p>
+    </header>
+
+    <div class="container">
+        <div id="map"></div>
+
+        <div class="sidebar">
+            <div class="sidebar-content">
+                <div class="info-box">
+                    <h3>🗺️ How to Use</h3>
+                    <p><strong>Click any location</strong> on the map to view the snow ensemble forecast for that point.</p>
+                    <p style="margin-top: 10px;"><strong>Or</strong> select from popular ski resort locations below.</p>
+                </div>
+
+                <div class="cities-list">
+                    <h3 style="margin-bottom: 10px; color: #1e3c72;">⛷️ Popular Ski Resorts</h3>
+                    <div class="city-item" onclick="selectCity(40.59, -111.64, 'Alta Ski Area, UT')">
+                        <div class="city-name">Alta Ski Area, UT</div>
+                        <div class="city-coords">40.59°N, 111.64°W • 8,530 ft</div>
+                    </div>
+                    <div class="city-item" onclick="selectCity(40.65, -111.50, 'Park City, UT')">
+                        <div class="city-name">Park City Mountain, UT</div>
+                        <div class="city-coords">40.65°N, 111.50°W • 8,400 ft</div>
+                    </div>
+                    <div class="city-item" onclick="selectCity(40.60, -111.58, 'Brighton Resort, UT')">
+                        <div class="city-name">Brighton Resort, UT</div>
+                        <div class="city-coords">40.60°N, 111.58°W • 8,755 ft</div>
+                    </div>
+                    <div class="city-item" onclick="selectCity(40.76, -111.89, 'Salt Lake City, UT')">
+                        <div class="city-name">Salt Lake City, UT</div>
+                        <div class="city-coords">40.76°N, 111.89°W • 4,226 ft</div>
+                    </div>
+                    <div class="city-item" onclick="selectCity(39.64, -106.05, 'Vail, CO')">
+                        <div class="city-name">Vail, CO</div>
+                        <div class="city-coords">39.64°N, 106.05°W • 8,150 ft</div>
+                    </div>
+                    <div class="city-item" onclick="selectCity(47.61, -122.33, 'Seattle, WA')">
+                        <div class="city-name">Seattle, WA</div>
+                        <div class="city-coords">47.61°N, 122.33°W • 175 ft</div>
+                    </div>
+                </div>
+
+                <div id="forecastDisplay" style="display: none;">
+                    <div class="location-info">
+                        <h3>📍 Selected Location</h3>
+                        <div class="location-details">
+                            <strong>Name:</strong> <span id="locName">-</span>
+                            <strong>Coordinates:</strong> <span id="locCoords">-</span>
+                        </div>
+
+                        <div class="stat-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Mean Forecast</div>
+                                <div class="stat-value"><span id="statMean">-</span> <span class="stat-unit">mm</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">90th Percentile</div>
+                                <div class="stat-value"><span id="statP90">-</span> <span class="stat-unit">mm</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Median</div>
+                                <div class="stat-value"><span id="statMedian">-</span> <span class="stat-unit">mm</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">10th Percentile</div>
+                                <div class="stat-value"><span id="statP10">-</span> <span class="stat-unit">mm</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <h4>📝 Note</h4>
+                    <p>This is an <strong>interactive demo</strong>. To generate custom forecasts, you can run the point forecast script locally:</p>
+                    <pre style="background: #f8f9fa; padding: 10px; margin-top: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85em;">python generate_point_forecast.py --lat 40.76 --lon -111.89</pre>
+                    <p style="margin-top: 10px; font-size: 0.85em;">Data shown is simulated for demonstration. Real forecasts use live GEFS and ECMWF ensemble data from Dynamical.org.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([40.76, -111.89], 7);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 13
+        }).addTo(map);
+
+        // Add terrain overlay (optional)
+        L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+            attribution: 'Map tiles by Stamen Design, CC BY 3.0',
+            opacity: 0.3,
+            maxZoom: 13
+        }).addTo(map);
+
+        let currentMarker = null;
+        let forecastChart = null;
+
+        // Click handler
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            selectCity(lat, lon, `Custom Location`);
+        });
+
+        function selectCity(lat, lon, name) {
+            // Add/update marker
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+            currentMarker = L.marker([lat, lon]).addTo(map);
+            currentMarker.bindPopup(`<b>${name}</b><br>${lat.toFixed(2)}°N, ${Math.abs(lon).toFixed(2)}°W`).openPopup();
+
+            // Center map
+            map.setView([lat, lon], 9);
+
+            // Generate simulated forecast (in real app, this would fetch from API)
+            generateSimulatedForecast(lat, lon, name);
+        }
+
+        function generateSimulatedForecast(lat, lon, name) {
+            document.getElementById('forecastDisplay').style.display = 'block';
+            document.getElementById('locName').textContent = name;
+            document.getElementById('locCoords').textContent = `${lat.toFixed(2)}°N, ${Math.abs(lon).toFixed(2)}°W`;
+
+            // Simulate ensemble forecast data
+            const hours = 240;
+            const timesteps = 81; // Every 3 hours
+            const leadTimes = Array.from({length: timesteps}, (_, i) => i * 3);
+
+            // Generate realistic ensemble members
+            const numMembers = 82;
+            const ensembleData = [];
+
+            // Base accumulation rate (varies by latitude and elevation)
+            const baseRate = Math.random() * 2 + 0.5; // 0.5-2.5 mm/3hr
+
+            for (let m = 0; m < numMembers; m++) {
+                let cumulative = 0;
+                const memberData = [];
+                const memberVariation = (Math.random() - 0.5) * 1.5; // Member-specific variation
+
+                for (let t = 0; t < timesteps; t++) {
+                    // Add some temporal and stochastic variation
+                    const timeVariation = Math.sin(t / 10) * 0.3;
+                    const randomVariation = (Math.random() - 0.5) * 0.5;
+                    const increment = Math.max(0, (baseRate + memberVariation + timeVariation + randomVariation));
+                    cumulative += increment;
+                    memberData.push(cumulative);
+                }
+                ensembleData.push(memberData);
+            }
+
+            // Calculate statistics
+            const mean = leadTimes.map((_, i) => {
+                const values = ensembleData.map(m => m[i]);
+                return values.reduce((a, b) => a + b) / values.length;
+            });
+
+            const median = leadTimes.map((_, i) => {
+                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
+                return values[Math.floor(values.length / 2)];
+            });
+
+            const p10 = leadTimes.map((_, i) => {
+                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
+                return values[Math.floor(values.length * 0.1)];
+            });
+
+            const p90 = leadTimes.map((_, i) => {
+                const values = ensembleData.map(m => m[i]).sort((a, b) => a - b);
+                return values[Math.floor(values.length * 0.9)];
+            });
+
+            // Update stats
+            document.getElementById('statMean').textContent = mean[mean.length - 1].toFixed(1);
+            document.getElementById('statMedian').textContent = median[median.length - 1].toFixed(1);
+            document.getElementById('statP10').textContent = p10[p10.length - 1].toFixed(1);
+            document.getElementById('statP90').textContent = p90[p90.length - 1].toFixed(1);
+
+            // Create chart
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+
+            if (forecastChart) {
+                forecastChart.destroy();
+            }
+
+            const days = leadTimes.map(h => h / 24);
+
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Mean',
+                            data: mean,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Median',
+                            data: median,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        },
+                        {
+                            label: '10th-90th Percentile',
+                            data: p90,
+                            borderColor: 'rgba(75, 192, 192, 0.3)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            fill: '+1',
+                            borderWidth: 1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '',
+                            data: p10,
+                            borderColor: 'rgba(75, 192, 192, 0.3)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '10-Day Cumulative Snow Forecast',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                filter: (item) => item.text !== ''
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Forecast Day'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Accumulated Snow (mm)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize with a default location
+        selectCity(40.59, -111.64, 'Alta Ski Area, UT');
+    </script>
+</body>
+</html>
