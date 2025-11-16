@@ -2,6 +2,16 @@
 
 An automated snow ensemble forecasting system that combines 82 ensemble members from NOAA GEFS and ECMWF IFS-ENS to provide probabilistic snowfall forecasts for the western United States.
 
+## ⚡ Getting Started
+
+**GitHub Actions is running now!** 🎉
+
+1. **Enable GitHub Pages** (required): See [SETUP.md](SETUP.md) for step-by-step instructions
+2. **Monitor the workflow**: Go to the [Actions tab](../../actions) to watch the forecast generation
+3. **View your forecast**: Once complete, visit `https://andrewnakas.github.io/nakas_snow_ensamble/`
+
+The workflow takes about **10-15 minutes** for the first run.
+
 ## 🎯 Features
 
 - **82-Member Ensemble**: Combines 31 GEFS members + 51 ECMWF IFS-ENS members
