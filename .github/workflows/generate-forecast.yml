@@ -1,6 +1,14 @@
 name: Generate Snow Ensemble Forecast
 
 on:
+  push:
+    branches:
+      - claude/snow-ensemble-github-actions-015sZZdvXEYTnKE7oVxsv1o1
+    paths:
+      - 'src/**'
+      - 'generate_forecast.py'
+      - 'requirements.txt'
+      - '.github/workflows/generate-forecast.yml'
   schedule:
     # Run daily at 12:00 UTC (after model runs are typically available)
     - cron: '0 12 * * *'
@@ -42,12 +50,15 @@ jobs:
       - name: Generate forecast
         env:
           REGION: ${{ github.event.inputs.region || 'intermountain_west' }}
+        continue-on-error: false
         run: |
+          echo "Starting forecast generation for region: $REGION"
           python generate_forecast.py \
             --region $REGION \
             --max-hours 240 \
             --output-dir docs \
-            --email [email protected]
+            --email [email protected] 2>&1 | tee forecast.log
+          echo "Forecast generation completed"
 
       - name: Commit and push forecast updates
         run: |
@@ -59,20 +70,28 @@ jobs:
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: forecast-maps
-          path: docs/*.png
+          path: |
+            docs/*.png
+            docs/metadata.json
+            forecast.log
           retention-days: 30
 
   deploy-pages:
     needs: generate-forecast
     runs-on: ubuntu-latest
+    if: success()
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: claude/snow-ensemble-github-actions-015sZZdvXEYTnKE7oVxsv1o1
+
+      - name: Pull latest changes
+        run: git pull origin claude/snow-ensemble-github-actions-015sZZdvXEYTnKE7oVxsv1o1
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -85,3 +104,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Output Pages URL
+        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"
