@@ -274,15 +274,23 @@
                 <div class="image-grid">
                     <div class="image-card">
                         <div class="image-title">10-Day Total Snowfall</div>
-                        <img src="snow_10day_total.png" alt="10-Day Total Snowfall"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                        <img src="snow_10day_total.png" alt="10-Day Total Snowfall" id="img1">
                     </div>
                     <div class="image-card">
                         <div class="image-title">Maximum 24-Hour Snowfall</div>
-                        <img src="snow_24h_max.png" alt="Maximum 24-Hour Snowfall"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                        <img src="snow_24h_max.png" alt="Maximum 24-Hour Snowfall" id="img2">
                     </div>
                 </div>
+
+                <script>
+                // Check if images exist, show loading message if not
+                ['img1', 'img2'].forEach(id => {
+                    const img = document.getElementById(id);
+                    img.onerror = function() {
+                        this.parentElement.innerHTML = '<div style="padding: 60px; text-align: center; background: #f8f9fa; border-radius: 8px;"><div style="font-size: 48px; margin-bottom: 20px;">⏳</div><div style="font-size: 18px; color: #666; margin-bottom: 10px;">Generating Forecast...</div><div style="font-size: 14px; color: #999;">Check <a href="https://github.com/andrewnakas/nakas_snow_ensamble/actions" target="_blank" style="color: #2a5298;">GitHub Actions</a> for progress</div></div>';
+                    };
+                });
+                </script>
             </section>
 
             <!-- Ensemble Spread -->
@@ -296,10 +304,15 @@
                 <div class="image-grid">
                     <div class="image-card">
                         <div class="image-title">10-Day Snowfall Ensemble Spread</div>
-                        <img src="snow_ensemble_spread.png" alt="Ensemble Spread"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast map will appear here after first run</div>'">
+                        <img src="snow_ensemble_spread.png" alt="Ensemble Spread" id="img3">
                     </div>
                 </div>
+
+                <script>
+                document.getElementById('img3').onerror = function() {
+                    this.parentElement.innerHTML = '<div style="padding: 60px; text-align: center; background: #f8f9fa; border-radius: 8px;"><div style="font-size: 48px; margin-bottom: 20px;">⏳</div><div style="font-size: 18px; color: #666; margin-bottom: 10px;">Generating Forecast...</div><div style="font-size: 14px; color: #999;">Using live GEFS + ECMWF ensemble data</div></div>';
+                };
+                </script>
             </section>
 
             <!-- Location-Specific Plume Plots -->
@@ -315,25 +328,30 @@
                 <div class="city-plots">
                     <div class="image-card">
                         <div class="image-title">Salt Lake City, UT</div>
-                        <img src="snow_plume_salt_lake_city_ut.png" alt="Salt Lake City Forecast"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                        <img src="snow_plume_salt_lake_city_ut.png" alt="Salt Lake City Forecast" id="city1">
                     </div>
                     <div class="image-card">
                         <div class="image-title">Park City, UT</div>
-                        <img src="snow_plume_park_city_ut.png" alt="Park City Forecast"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                        <img src="snow_plume_park_city_ut.png" alt="Park City Forecast" id="city2">
                     </div>
                     <div class="image-card">
                         <div class="image-title">Alta, UT</div>
-                        <img src="snow_plume_alta_ut.png" alt="Alta Forecast"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                        <img src="snow_plume_alta_ut.png" alt="Alta Forecast" id="city3">
                     </div>
                     <div class="image-card">
                         <div class="image-title">Brighton, UT</div>
-                        <img src="snow_plume_brighton_ut.png" alt="Brighton Forecast"
-                             onerror="this.parentElement.innerHTML='<div class=loading>Forecast will appear here after first run</div>'">
+                        <img src="snow_plume_brighton_ut.png" alt="Brighton Forecast" id="city4">
                     </div>
                 </div>
+
+                <script>
+                ['city1', 'city2', 'city3', 'city4'].forEach(id => {
+                    const img = document.getElementById(id);
+                    img.onerror = function() {
+                        this.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; background: #f8f9fa; border-radius: 8px;"><div style="font-size: 36px; margin-bottom: 15px;">⏳</div><div style="font-size: 16px; color: #666;">Processing ensemble members...</div></div>';
+                    };
+                });
+                </script>
             </section>
 
             <!-- Data Sources -->
