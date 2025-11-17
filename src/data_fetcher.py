@@ -63,6 +63,10 @@ class EnsembleDataFetcher:
         print(f"  Members: {len(ds_subset.ensemble_member)}")
         print(f"  Lead times: {len(ds_subset.lead_time)}")
 
+        # Check for wind variables
+        has_wind = 'u_component_of_wind_10m' in ds_subset and 'v_component_of_wind_10m' in ds_subset
+        print(f"  Wind data available: {has_wind}")
+
         return ds_subset
 
     def fetch_ecmwf(self,
@@ -102,6 +106,10 @@ class EnsembleDataFetcher:
         print(f"  Loaded ECMWF init time: {latest_init}")
         print(f"  Members: {len(ds_subset.ensemble_member)}")
         print(f"  Lead times: {len(ds_subset.lead_time)}")
+
+        # Check for wind variables
+        has_wind = 'u_component_of_wind_10m' in ds_subset and 'v_component_of_wind_10m' in ds_subset
+        print(f"  Wind data available: {has_wind}")
 
         return ds_subset
 

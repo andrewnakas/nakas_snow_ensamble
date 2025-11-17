@@ -97,23 +97,44 @@ def main():
         print("If you're seeing 404 errors, the datasets may not be available yet.")
         sys.exit(1)
 
-    # Step 2: Extract precipitation and temperature
-    print("\nStep 2: Processing precipitation and temperature data...")
+    # Step 2: Extract precipitation, temperature, and wind data
+    print("\nStep 2: Processing precipitation, temperature, and wind data...")
 
     # GEFS variables
     gefs_precip = gefs_data['precipitation_surface']  # Already in mm
     gefs_temp = gefs_data['temperature_2m']  # Kelvin
 
+    # Try to get wind data (for MLR-based SLR)
+    gefs_u_wind = gefs_data.get('u_component_of_wind_10m', None)
+    gefs_v_wind = gefs_data.get('v_component_of_wind_10m', None)
+
+    if gefs_u_wind is not None and gefs_v_wind is not None:
+        print("  GEFS: Using wind data for MLR-based SLR")
+    else:
+        print("  GEFS: Wind data not available, using temperature-only MLR")
+
     # ECMWF variables
     ecmwf_precip = ecmwf_data['precipitation_surface']  # Already in mm
     ecmwf_temp = ecmwf_data['temperature_2m']  # Kelvin
 
-    # Step 3: Calculate snowfall
-    print("\nStep 3: Calculating snowfall...")
+    ecmwf_u_wind = ecmwf_data.get('u_component_of_wind_10m', None)
+    ecmwf_v_wind = ecmwf_data.get('v_component_of_wind_10m', None)
+
+    if ecmwf_u_wind is not None and ecmwf_v_wind is not None:
+        print("  ECMWF: Using wind data for MLR-based SLR")
+    else:
+        print("  ECMWF: Wind data not available, using temperature-only MLR")
+
+    # Step 3: Calculate snowfall using MLR (Utah method)
+    print("\nStep 3: Calculating snowfall using MLR-based SLR (Utah method)...")
     calculator = SnowCalculator()
 
-    gefs_snow = calculator.process_ensemble_snow(gefs_precip, gefs_temp)
-    ecmwf_snow = calculator.process_ensemble_snow(ecmwf_precip, ecmwf_temp)
+    gefs_snow = calculator.process_ensemble_snow(
+        gefs_precip, gefs_temp, gefs_u_wind, gefs_v_wind
+    )
+    ecmwf_snow = calculator.process_ensemble_snow(
+        ecmwf_precip, ecmwf_temp, ecmwf_u_wind, ecmwf_v_wind
+    )
 
     # Combine ensembles
     print("\nStep 4: Combining ensemble members...")

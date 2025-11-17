@@ -48,14 +48,23 @@ def generate_point_forecast(lat, lon, max_hours=240, output_file=None):
         # Extract variables
         gefs_precip = gefs_data['precipitation_surface']
         gefs_temp = gefs_data['temperature_2m']
+        gefs_u_wind = gefs_data.get('u_component_of_wind_10m', None)
+        gefs_v_wind = gefs_data.get('v_component_of_wind_10m', None)
+
         ecmwf_precip = ecmwf_data['precipitation_surface']
         ecmwf_temp = ecmwf_data['temperature_2m']
+        ecmwf_u_wind = ecmwf_data.get('u_component_of_wind_10m', None)
+        ecmwf_v_wind = ecmwf_data.get('v_component_of_wind_10m', None)
 
-        # Calculate snow
-        print("Calculating snowfall...")
+        # Calculate snow using MLR (Utah method)
+        print("Calculating snowfall using MLR-based SLR (temperature + wind)...")
         calculator = SnowCalculator()
-        gefs_snow = calculator.process_ensemble_snow(gefs_precip, gefs_temp)
-        ecmwf_snow = calculator.process_ensemble_snow(ecmwf_precip, ecmwf_temp)
+        gefs_snow = calculator.process_ensemble_snow(
+            gefs_precip, gefs_temp, gefs_u_wind, gefs_v_wind
+        )
+        ecmwf_snow = calculator.process_ensemble_snow(
+            ecmwf_precip, ecmwf_temp, ecmwf_u_wind, ecmwf_v_wind
+        )
 
         # Combine ensembles
         gefs_snow_renamed = gefs_snow.assign_coords(
