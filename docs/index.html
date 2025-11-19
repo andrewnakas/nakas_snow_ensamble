@@ -327,25 +327,29 @@
 
                 <div class="city-plots">
                     <div class="image-card">
-                        <div class="image-title">Salt Lake City, UT</div>
-                        <img src="snow_plume_salt_lake_city_ut.png" alt="Salt Lake City Forecast" id="city1">
+                        <div class="image-title">Big Sky Resort, MT</div>
+                        <img src="snow_plume_big_sky_mt.png" alt="Big Sky Forecast" id="city1">
                     </div>
                     <div class="image-card">
-                        <div class="image-title">Park City, UT</div>
-                        <img src="snow_plume_park_city_ut.png" alt="Park City Forecast" id="city2">
+                        <div class="image-title">Alta Ski Area, UT</div>
+                        <img src="snow_plume_alta_ut.png" alt="Alta Forecast" id="city2">
                     </div>
                     <div class="image-card">
-                        <div class="image-title">Alta, UT</div>
-                        <img src="snow_plume_alta_ut.png" alt="Alta Forecast" id="city3">
+                        <div class="image-title">Bridger Bowl, MT</div>
+                        <img src="snow_plume_bridger_bowl_mt.png" alt="Bridger Bowl Forecast" id="city3">
                     </div>
                     <div class="image-card">
-                        <div class="image-title">Brighton, UT</div>
-                        <img src="snow_plume_brighton_ut.png" alt="Brighton Forecast" id="city4">
+                        <div class="image-title">Jackson Hole, WY</div>
+                        <img src="snow_plume_jackson_hole_wy.png" alt="Jackson Hole Forecast" id="city4">
+                    </div>
+                    <div class="image-card">
+                        <div class="image-title">Grand Targhee, WY</div>
+                        <img src="snow_plume_grand_targhee_wy.png" alt="Grand Targhee Forecast" id="city5">
                     </div>
                 </div>
 
                 <script>
-                ['city1', 'city2', 'city3', 'city4'].forEach(id => {
+                ['city1', 'city2', 'city3', 'city4', 'city5'].forEach(id => {
                     const img = document.getElementById(id);
                     img.onerror = function() {
                         this.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; background: #f8f9fa; border-radius: 8px;"><div style="font-size: 36px; margin-bottom: 15px;">⏳</div><div style="font-size: 16px; color: #666;">Processing ensemble members...</div></div>';
