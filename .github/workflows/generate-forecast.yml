@@ -66,21 +66,25 @@ jobs:
           echo "Generating point forecasts for popular ski resorts..."
           mkdir -p docs/forecasts
 
-          # Alta Ski Area
+          # Big Sky, MT
+          python generate_point_forecast.py --lat 45.28 --lon -111.40 \
+            --output docs/forecasts/big_sky_mt.json || echo "Big Sky forecast failed"
+
+          # Alta, UT
           python generate_point_forecast.py --lat 40.59 --lon -111.64 \
             --output docs/forecasts/alta_ut.json || echo "Alta forecast failed"
 
-          # Park City
-          python generate_point_forecast.py --lat 40.65 --lon -111.50 \
-            --output docs/forecasts/park_city_ut.json || echo "Park City forecast failed"
+          # Bridger Bowl, MT
+          python generate_point_forecast.py --lat 45.82 --lon -110.90 \
+            --output docs/forecasts/bridger_bowl_mt.json || echo "Bridger Bowl forecast failed"
 
-          # Brighton
-          python generate_point_forecast.py --lat 40.60 --lon -111.58 \
-            --output docs/forecasts/brighton_ut.json || echo "Brighton forecast failed"
+          # Jackson Hole, WY
+          python generate_point_forecast.py --lat 43.59 --lon -110.83 \
+            --output docs/forecasts/jackson_hole_wy.json || echo "Jackson Hole forecast failed"
 
-          # Salt Lake City
-          python generate_point_forecast.py --lat 40.76 --lon -111.89 \
-            --output docs/forecasts/salt_lake_city_ut.json || echo "SLC forecast failed"
+          # Grand Targhee, WY
+          python generate_point_forecast.py --lat 43.79 --lon -111.10 \
+            --output docs/forecasts/grand_targhee_wy.json || echo "Grand Targhee forecast failed"
 
           echo "Point forecasts generation completed"
 
