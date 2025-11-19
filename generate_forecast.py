@@ -30,21 +30,23 @@ REGIONS = {
         'lat_bounds': (32.0, 49.0),  # Southern to Northern border
         'lon_bounds': (-125.0, -102.0),  # West coast to Rockies
         'cities': [
-            ('Salt Lake City, UT', 40.76, -111.89),
-            ('Denver, CO', 39.74, -104.99),
-            ('Seattle, WA', 47.61, -122.33),
-            ('Boise, ID', 43.62, -116.21),
+            ('Big Sky, MT', 45.28, -111.40),
+            ('Alta, UT', 40.59, -111.64),
+            ('Bridger Bowl, MT', 45.82, -110.90),
+            ('Jackson Hole, WY', 43.59, -110.83),
+            ('Grand Targhee, WY', 43.79, -111.10),
         ]
     },
     'intermountain_west': {
-        'name': 'Intermountain West',
-        'lat_bounds': (37.0, 45.0),
-        'lon_bounds': (-114.0, -107.0),
+        'name': 'Intermountain West - Premier Ski Resorts',
+        'lat_bounds': (40.0, 46.0),  # Extended to include Montana
+        'lon_bounds': (-112.0, -110.0),  # Focused on resort area
         'cities': [
-            ('Salt Lake City, UT', 40.76, -111.89),
-            ('Park City, UT', 40.65, -111.50),
+            ('Big Sky, MT', 45.28, -111.40),
             ('Alta, UT', 40.59, -111.64),
-            ('Brighton, UT', 40.60, -111.58),
+            ('Bridger Bowl, MT', 45.82, -110.90),
+            ('Jackson Hole, WY', 43.59, -110.83),
+            ('Grand Targhee, WY', 43.79, -111.10),
         ]
     }
 }
