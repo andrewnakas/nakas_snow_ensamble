@@ -5,6 +5,8 @@ Fetches data, calculates snow, and creates visualizations.
 
 This script is designed to run automatically via GitHub Actions.
 It downloads live GEFS and ECMWF IFS-ENS data from Dynamical.org.
+
+Generates forecasts for premier Northern Rockies ski resorts.
 """
 
 import os
